@@ -4,9 +4,9 @@
 .pnpm-store
 .cache
 compile_commands.json
-secrets.h
-include/secrets.h
-/include/secrets.h
+vassecrets.h
+include/vassecrets.h
+/include/vassecrets.h
 
 # Logs
 logs
