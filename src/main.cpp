@@ -19,26 +19,27 @@
 #include "PluginManager.h"
 #include "scheduler.h"
 
-#include "plugins/ArtNet.h"
-#include "plugins/Blob.h"
-#include "plugins/BreakoutPlugin.h"
+// #include "plugins/ArtNet.h"
+// #include "plugins/Blob.h"
+// #include "plugins/BreakoutPlugin.h"
+// #include "plugins/GameOfLifePlugin.h"
+// #include "plugins/DDPPlugin.h"
+// #include "plugins/DrawPlugin.h"
+// #include "plugins/PongClockPlugin.h"
+// #include "plugins/SnakePlugin.h"
+// #include "plugins/TickingClockPlugin.h"
+
 #include "plugins/CirclePlugin.h"
-#include "plugins/DDPPlugin.h"
-#include "plugins/DrawPlugin.h"
 #include "plugins/FireworkPlugin.h"
-#include "plugins/GameOfLifePlugin.h"
 #include "plugins/LinesPlugin.h"
-#include "plugins/PongClockPlugin.h"
 #include "plugins/RainPlugin.h"
-#include "plugins/SnakePlugin.h"
 #include "plugins/StarsPlugin.h"
-#include "plugins/TickingClockPlugin.h"
 
 #ifdef ENABLE_SERVER
-#include "plugins/AnimationPlugin.h"
 #include "plugins/BigClockPlugin.h"
-#include "plugins/ClockPlugin.h"
 #include "plugins/WeatherPlugin.h"
+// #include "plugins/AnimationPlugin.h"
+// #include "plugins/ClockPlugin.h"
 #endif
 
 #include "asyncwebserver.h"
@@ -47,6 +48,9 @@
 #include "screen.h"
 #include "secrets.h"
 #include "websocket.h"
+#include <PubSubClient.h>
+
+volatile uint8_t mqtt_value = 0;
 
 BfButton btn(BfButton::STANDALONE_DIGITAL, PIN_BUTTON, true, LOW);
 
@@ -118,7 +122,51 @@ void connectToWiFi()
 
   lastConnectionAttempt = millis();
 }
+// MQTT Stuff
+WiFiClientSecure wifiClient;
+PubSubClient mqttClient(wifiClient);
 
+void mqttCallback(char *topic, byte *payload, unsigned int length)
+{
+  // Payload is NOT null-terminated
+  char value[8] = {0};
+  memcpy(value, payload, min(length, sizeof(value) - 1));
+
+  // Convert to int (your 1 byte)
+  mqtt_value = atoi(value);
+  if (currentStatus != LOADING)
+  {
+    Scheduler.clearSchedule();
+    pluginManager.activateNextPlugin();
+  }
+}
+void connectMQTT()
+{
+  mqttClient.setServer(MQTT_server, MQTT_port);
+  mqttClient.setCallback(mqttCallback);
+
+  while (!mqttClient.connected())
+  {
+    if (mqttClient.connect("esp32-client", // client ID (can be anything)
+                           MQTT_username,  // MQTT username
+                           MQTT_key        // MQTT password
+                           ))
+    {
+
+      // Subscribe once connected
+      mqttClient.subscribe(MQTT_topic);
+    }
+    else
+    {
+      Serial.println("mqttSetupFail");
+      delay(10);
+    }
+  }
+}
+void setupTLS()
+{
+  wifiClient.setInsecure(); // Skip CA validation
+}
 void pressHandler(BfButton *btn, BfButton::press_pattern_t pattern)
 {
   switch (pattern)
@@ -165,26 +213,28 @@ void baseSetup()
   initWebServer();
 #endif
 
-  pluginManager.addPlugin(new DrawPlugin());
-  pluginManager.addPlugin(new BreakoutPlugin());
-  pluginManager.addPlugin(new SnakePlugin());
-  pluginManager.addPlugin(new GameOfLifePlugin());
+  // pluginManager.addPlugin(new DrawPlugin());
+  // pluginManager.addPlugin(new BreakoutPlugin());
+  // pluginManager.addPlugin(new SnakePlugin());
+
+  // pluginManager.addPlugin(new BlobPlugin());
   pluginManager.addPlugin(new StarsPlugin());
   pluginManager.addPlugin(new LinesPlugin());
   pluginManager.addPlugin(new CirclePlugin());
   pluginManager.addPlugin(new RainPlugin());
+  // pluginManager.addPlugin(new GameOfLifePlugin());
+
   pluginManager.addPlugin(new FireworkPlugin());
-  pluginManager.addPlugin(new BlobPlugin());
 
 #ifdef ENABLE_SERVER
   pluginManager.addPlugin(new BigClockPlugin());
-  pluginManager.addPlugin(new ClockPlugin());
-  pluginManager.addPlugin(new PongClockPlugin());
-  pluginManager.addPlugin(new TickingClockPlugin());
   pluginManager.addPlugin(new WeatherPlugin());
-  pluginManager.addPlugin(new AnimationPlugin());
-  pluginManager.addPlugin(new DDPPlugin());
-  pluginManager.addPlugin(new ArtNetPlugin());
+  // pluginManager.addPlugin(new ClockPlugin());
+  // pluginManager.addPlugin(new PongClockPlugin());
+  // pluginManager.addPlugin(new TickingClockPlugin());
+  // pluginManager.addPlugin(new AnimationPlugin());
+  // pluginManager.addPlugin(new DDPPlugin());
+  // pluginManager.addPlugin(new ArtNetPlugin());
 #endif
 
   Screen.clear();
@@ -210,6 +260,8 @@ void screenDrawingTask(void *parameter)
 void setup()
 {
   baseSetup();
+  setupTLS();
+  connectMQTT();
   xTaskCreatePinnedToCore(screenDrawingTask,
                           "screenDrawingTask",
                           10000,
@@ -282,6 +334,13 @@ void loop()
     }
   }
 
+  // MQTT Loop stuff
+  if (!mqttClient.connected())
+  {
+    connectMQTT();
+  }
+  mqttClient.loop();
+  //
   taskCounter++;
   if (taskCounter > 16)
   {
