@@ -6,11 +6,11 @@
 #define ENABLE_SERVER
 
 #ifdef ESP32
-#define PIN_ENABLE 26
-#define PIN_DATA 27
+#define PIN_ENABLE 32
+#define PIN_DATA 12
 #define PIN_CLOCK 14
-#define PIN_LATCH 12
-#define PIN_BUTTON 16
+#define PIN_LATCH 33
+#define PIN_BUTTON 25
 #endif
 
 #ifdef ESP8266
@@ -30,7 +30,7 @@
 
 #ifdef ENABLE_SERVER
 // https://github.com/nayarsystems/posix_tz_db/blob/master/zones.json
-#define NTP_SERVER "de.pool.ntp.org"
+#define NTP_SERVER "bevtime1.metrologie.at"
 #define TZ_INFO "CET-1CEST,M3.5.0,M10.5.0/3"
 #endif
 
@@ -42,7 +42,7 @@ constexpr uint8_t MAX_BRIGHTNESS = 255;
 constexpr uint16_t TOTAL_PIXELS = ROWS * COLS;
 
 // set your city or coords (https://github.com/chubin/wttr.in)
-#define WEATHER_LOCATION "Hamburg"
+#define WEATHER_LOCATION "Vienna"
 
 // name of WiFi created by the device if no known WiFi is available
 #define WIFI_MANAGER_SSID "IKEA"

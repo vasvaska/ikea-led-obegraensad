@@ -9,7 +9,7 @@
 
 #include "PluginManager.h"
 #include "screen.h"
-#include "secrets.h"
+#include "vassecrets.h"
 #include "signs.h"
 
 void onOTAStart();

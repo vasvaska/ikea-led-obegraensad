@@ -9,7 +9,7 @@ void BigClockPlugin::setup()
   Screen.setPixel(8, 7, 1);
   Screen.setPixel(10, 7, 1);
   Screen.setPixel(11, 7, 1);
-
+  delay(10);
   previousMinutes = -1;
   previousHour = -1;
   previousHH.clear();
@@ -33,16 +33,20 @@ void BigClockPlugin::loop()
       {
 
         Screen.clear();
+        delay(10);
         if (leadingZero)
         {
           hh.erase(hh.begin());
           Screen.drawBigNumbers(COLS / 2, 0, hh);
+          delayMicroseconds(1000);
           Screen.drawBigNumbers(0, ROWS / 2, mm);
         }
         else
         {
           Screen.drawBigNumbers(0, 0, hh);
+          delayMicroseconds(1000);
           Screen.drawBigNumbers(0, ROWS / 2, mm);
+          delay(10);
         }
       }
       else
@@ -52,17 +56,20 @@ void BigClockPlugin::loop()
         if (leadingZero)
         {
           displayHH.erase(displayHH.begin());
+          delay(10);
         }
 
         if (displayHH != previousHH)
         {
           int startX = leadingZero ? COLS / 2 : 0;
           Screen.drawBigNumbers(startX, 0, displayHH);
+          delay(10);
         }
 
         if (mm != previousMM)
         {
           Screen.drawBigNumbers(0, ROWS / 2, mm);
+          delay(10);
         }
 
         previousHH = displayHH;
@@ -76,14 +83,18 @@ void BigClockPlugin::loop()
         if (leadingZero)
         {
           displayHH.erase(displayHH.begin());
+          delay(10);
         }
         previousHH = displayHH;
         previousMM = mm;
       }
 
       previousMinutes = timeinfo.tm_min;
+      delay(10);
       previousHour = timeinfo.tm_hour;
+      delay(10);
       previousLeadingZero = leadingZero;
+      delay(10);
     }
   }
 }

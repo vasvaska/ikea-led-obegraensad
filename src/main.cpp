@@ -138,7 +138,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   if (currentStatus != LOADING)
   {
     Scheduler.clearSchedule();
-    pluginManager.activateNextPlugin();
+    pluginManager.setActivePluginById(mqtt_value);
   }
 }
 void connectMQTT()
@@ -160,7 +160,6 @@ void connectMQTT()
     else
     {
       Serial.println("mqttSetupFail");
-      delay(10);
     }
   }
 }
@@ -217,19 +216,28 @@ void baseSetup()
   // pluginManager.addPlugin(new DrawPlugin());
   // pluginManager.addPlugin(new BreakoutPlugin());
   // pluginManager.addPlugin(new SnakePlugin());
-
   // pluginManager.addPlugin(new BlobPlugin());
+  // pluginManager.addPlugin(new GameOfLifePlugin());
+  // Order of plugin IDs, starting from 1 (0 is reserved for no plugin):
+  // stars 1
+  // lines 2
+  // circle 3
+  // rain 4
+  // firework 5
+  // clock 6
+  // weather 7
+  // custom 8
   pluginManager.addPlugin(new StarsPlugin());
   pluginManager.addPlugin(new LinesPlugin());
   pluginManager.addPlugin(new CirclePlugin());
   pluginManager.addPlugin(new RainPlugin());
-  // pluginManager.addPlugin(new GameOfLifePlugin());
 
   pluginManager.addPlugin(new FireworkPlugin());
 
 #ifdef ENABLE_SERVER
   pluginManager.addPlugin(new BigClockPlugin());
   pluginManager.addPlugin(new WeatherPlugin());
+  /* Add custom plugin here */
   // pluginManager.addPlugin(new ClockPlugin());
   // pluginManager.addPlugin(new PongClockPlugin());
   // pluginManager.addPlugin(new TickingClockPlugin());

@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <algorithm>
 
-#define TIMER_INTERVAL_US 200
+#define TIMER_INTERVAL_US 250
 #define GRAY_LEVELS 64 // must be a power of two
 
 using namespace std;

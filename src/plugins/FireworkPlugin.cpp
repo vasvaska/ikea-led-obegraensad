@@ -10,6 +10,7 @@ void FireworkPlugin::drawExplosion(int x, int y, int maxRadius, int brightness)
       if (distance <= maxRadius)
       {
         Screen.setPixel(i, j, 1, brightness);
+        vTaskDelay(1);
       }
     }
   }
@@ -23,7 +24,7 @@ void FireworkPlugin::explode(int x, int y)
   {
     drawExplosion(x, y, radius, 255);
 #ifdef ESP32
-    vTaskDelay(pdMS_TO_TICKS(explosionDelay));
+    vTaskDelay(pdMS_TO_TICKS(explosionDelay+5));
 #else
     delay(explosionDelay);
 #endif
@@ -33,7 +34,7 @@ void FireworkPlugin::explode(int x, int y)
   {
     drawExplosion(x, y, maxRadius, brightness);
 #ifdef ESP32
-    vTaskDelay(pdMS_TO_TICKS(fadeDelay));
+    vTaskDelay(pdMS_TO_TICKS(fadeDelay+5));
 #else
     delay(fadeDelay);
 #endif
@@ -43,6 +44,7 @@ void FireworkPlugin::explode(int x, int y)
 void FireworkPlugin::setup()
 {
   Screen.clear();
+  vTaskDelay(10);
 }
 
 void FireworkPlugin::loop()
