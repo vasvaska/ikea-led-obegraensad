@@ -47,6 +47,7 @@
 #include "ota.h"
 #include "screen.h"
 #include "secrets.h"
+#include "vassecrets.h"
 #include "websocket.h"
 #include <PubSubClient.h>
 
