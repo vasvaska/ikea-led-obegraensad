@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
 
@@ -55,7 +55,7 @@ jobs:
           mv ./.pio/build/esp32dev/firmware.bin ./builds/esp32dev_firmware.bin
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: esp32dev_firmware
           path: ./builds/esp32dev_firmware.bin
@@ -81,10 +81,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python environment
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.10"
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: Upload artifact
         if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact_name }}
           path: ./builds/${{ matrix.artifact_name }}.bin
@@ -136,44 +136,44 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download ESP32 firmware
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: esp32dev_firmware
           path: ./builds/ # specify a target directory
 
       - name: Download ESP8266 firmware (nodemcuv2)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: nodemcuv2_firmware
           path: ./builds/ # specify a target directory
 
       - name: Download ESP8266 firmware (d1_mini_pro-ota)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: d1_mini_pro_ota_firmware
           path: ./builds/ # specify a target directory
 
       - name: Download ESP32-wemos firmware
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: ESP32-wemos_firmware
           path: ./builds/ # specify a target directory
 
       - name: Download ESP32-C3 firmware
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: esp32c3_firmware
           path: ./builds/ # specify a target directory
 
       - name: Download ESP32-S3 firmware
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: esp32s3_firmware
