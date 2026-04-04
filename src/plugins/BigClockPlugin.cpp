@@ -19,8 +19,14 @@ void BigClockPlugin::setup()
 
 void BigClockPlugin::loop()
 {
+  Serial.print("\nLast time: ");
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+
   if (getLocalTime(&timeinfo))
   {
+    // Serial.print(timeinfo.tm_hour);
+    // Serial.print(" ");
+    // Serial.println(timeinfo.tm_min);
     if (previousHour != timeinfo.tm_hour || previousMinutes != timeinfo.tm_min)
     {
       std::vector<int> hh = {(timeinfo.tm_hour - timeinfo.tm_hour % 10) / 10, timeinfo.tm_hour % 10};

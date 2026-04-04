@@ -1,6 +1,7 @@
 #pragma once
 #ifdef ESP32
 #include <HTTPClient.h>
+#include <WiFi.h>
 #include <WiFiClientSecure.h>
 #endif
 #ifdef ESP8266
@@ -8,23 +9,23 @@
 #include <ESP8266WiFi.h>
 #endif
 #include "PluginManager.h"
+#include "messages.h"
+#include "vassecrets.h"
 #include <ArduinoJson.h>
 
 class TransportPlugin : public Plugin
 {
 private:
   static const int RBL_ID = 2161;
-  static const unsigned long UPDATE_INTERVAL_MS = 35000;
+  static const unsigned long UPDATE_INTERVAL_MS = 60000; // 10 minutes
   unsigned long lastUpdate = 0;
   std::vector<int> timetodep;
   bool hasCachedData = false;
 
-  HTTPClient http;
 #ifdef ESP32
   WiFiClientSecure *secureClient = nullptr;
-  #endif
+#endif
 #ifdef ESP8266
-  WiFiClient wiFiClient;
 #endif
 
 public:

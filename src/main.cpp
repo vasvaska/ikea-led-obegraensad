@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <BfButton.h>
 #include <SPI.h>
+// extern const char* adafruit_ca;
 
 #ifdef ESP8266
 /* Fix duplicate defs of HTTP_GET, HTTP_POST, ... in ESPAsyncWebServer.h */
@@ -20,34 +21,25 @@
 #include "config.h"
 #include "scheduler.h"
 
-#include "plugins/ArtNet.h"
 #include "plugins/Blob.h"
-#include "plugins/BreakoutPlugin.h"
 #include "plugins/BubblesPlugin.h"
-#include "plugins/CheckerboardPlugin.h"
 #include "plugins/CirclePlugin.h"
 #include "plugins/CometPlugin.h"
-#include "plugins/DDPPlugin.h"
-#include "plugins/DrawPlugin.h"
-#include "plugins/FirefliesPlugin.h"
 #include "plugins/FireworkPlugin.h"
 #include "plugins/LinesPlugin.h"
 #include "plugins/RainPlugin.h"
-#include "plugins/ScanlinesPlugin.h"
-#include "plugins/SnakePlugin.h"
 #include "plugins/SparkleFieldPlugin.h"
-#include "plugins/SpiralPlugin.h"
+
+#include "plugins/MatrixRainPlugin.h"
+#include "plugins/MeteorShowerPlugin.h"
 #include "plugins/StarsPlugin.h"
-#include "plugins/TickingClockPlugin.h"
-#include "plugins/WaveBarsPlugin.h"
 #include "plugins/WavePlugin.h"
 
 #ifdef ENABLE_SERVER
 #include "plugins/BigClockPlugin.h"
+#include "plugins/DrawPlugin.h"
+#include "plugins/WLClockPlugin.h"
 #include "plugins/WeatherPlugin.h"
-// #include "plugins/AnimationPlugin.h"
-// #include "plugins/ClockPlugin.h"
-#include "plugins/TransportPlugin.h"
 #endif
 
 #include "asyncwebserver.h"
@@ -60,46 +52,9 @@
 #include <PubSubClient.h>
 
 // MQTT Stuff
-WiFiClientSecure wifiClient;
-PubSubClient mqttClient(wifiClient);
+// WiFiClientSecure wifiClientIO;
+// PubSubClient mqttClient(wifiClientIO);
 // Transport Stuff
-
-const char *ROOT_CA = R"EOF(
------BEGIN CERTIFICATE-----
-MIIF3jCCA8agAwIBAgIQAf1tMPyjylGoG7xkDjUDLTANBgkqhkiG9w0BAQwFADCB
-iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
-cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
-BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkwHhcNMTAw
-MjAxMDAwMDAwWhcNMzgwMTE4MjM1OTU5WjCBiDELMAkGA1UEBhMCVVMxEzARBgNV
-BAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0plcnNleSBDaXR5MR4wHAYDVQQKExVU
-aGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNVBAMTJVVTRVJUcnVzdCBSU0EgQ2Vy
-dGlmaWNhdGlvbiBBdXRob3JpdHkwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
-AoICAQCAEmUXNg7D2wiz0KxXDXbtzSfTTK1Qg2HiqiBNCS1kCdzOiZ/MPans9s/B
-3PHTsdZ7NygRK0faOca8Ohm0X6a9fZ2jY0K2dvKpOyuR+OJv0OwWIJAJPuLodMkY
-tJHUYmTbf6MG8YgYapAiPLz+E/CHFHv25B+O1ORRxhFnRghRy4YUVD+8M/5+bJz/
-Fp0YvVGONaanZshyZ9shZrHUm3gDwFA66Mzw3LyeTP6vBZY1H1dat//O+T23LLb2
-VN3I5xI6Ta5MirdcmrS3ID3KfyI0rn47aGYBROcBTkZTmzNg95S+UzeQc0PzMsNT
-79uq/nROacdrjGCT3sTHDN/hMq7MkztReJVni+49Vv4M0GkPGw/zJSZrM233bkf6
-c0Plfg6lZrEpfDKEY1WJxA3Bk1QwGROs0303p+tdOmw1XNtB1xLaqUkL39iAigmT
-Yo61Zs8liM2EuLE/pDkP2QKe6xJMlXzzawWpXhaDzLhn4ugTncxbgtNMs+1b/97l
-c6wjOy0AvzVVdAlJ2ElYGn+SNuZRkg7zJn0cTRe8yexDJtC/QV9AqURE9JnnV4ee
-UB9XVKg+/XRjL7FQZQnmWEIuQxpMtPAlR1n6BB6T1CZGSlCBst6+eLf8ZxXhyVeE
-Hg9j1uliutZfVS7qXMYoCAQlObgOK6nyTJccBz8NUvXt7y+CDwIDAQABo0IwQDAd
-BgNVHQ4EFgQUU3m/WqorSs9UgOHYm8Cd8rIDZsswDgYDVR0PAQH/BAQDAgEGMA8G
-A1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQEMBQADggIBAFzUfA3P9wF9QZllDHPF
-Up/L+M+ZBn8b2kMVn54CVVeWFPFSPCeHlCjtHzoBN6J2/FNQwISbxmtOuowhT6KO
-VWKR82kV2LyI48SqC/3vqOlLVSoGIG1VeCkZ7l8wXEskEVX/JJpuXior7gtNn3/3
-ATiUFJVDBwn7YKnuHKsSjKCaXqeYalltiz8I+8jRRa8YFWSQEg9zKC7F4iRO/Fjs
-8PRF/iKz6y+O0tlFYQXBl2+odnKPi4w2r78NBc5xjeambx9spnFixdjQg3IM8WcR
-iQycE0xyNN+81XHfqnHd4blsjDwSXWXavVcStkNr/+XeTWYRUc+ZruwXtuhxkYze
-Sf7dNXGiFSeUHM9h4ya7b6NnJSFd5t0dCy5oGzuCr+yDZ4XUmFF0sbmZgIn/f3gZ
-XHlKYC6SQK5MNyosycdiyA5d9zZbyuAlJQG03RoHnHcAP9Dc1ew91Pq7P8yF1m9/
-qS3fuQL39ZeatTXaw2ewh0qpKJ4jjv9cJ2vhsE/zB+4ALtRZh8tSQZXq9EfX7mRB
-VXyNWQKV3WKdwrnuWih0hKWbt5DHDAff9Yk2dDLWKMGwsAvgnEzDHNb842m1R0aB
-L6KCq9NjRHDEjf8tM7qtj3u1cIiuPhnPQCjY/MiQu12ZIvVS5ljFH4gxQ+6IHdfG
-jjxDah2nGN59PRbxYvnKkKj9
------END CERTIFICATE-----
-)EOF";
 
 volatile uint8_t mqtt_value = 0;
 
@@ -174,49 +129,46 @@ void connectToWiFi()
   lastConnectionAttempt = millis();
 }
 
-void mqttCallback(char *topic, byte *payload, unsigned int length)
-{
-  // Payload is NOT null-terminated
-  char value[8] = {0};
-  memcpy(value, payload, min(length, sizeof(value) - 1));
+// void mqttCallback(char *topic, byte *payload, unsigned int length)
+// {
+//   // Payload is NOT null-terminated
+//   char value[8] = {0};
+//   memcpy(value, payload, min(length, sizeof(value) - 1));
 
-  // Convert to int (your 1 byte)
-  mqtt_value = atoi(value);
-  if (currentStatus != LOADING)
-  {
-    Scheduler.clearSchedule();
-    pluginManager.setActivePluginById(mqtt_value);
-  }
-}
-void connectMQTT()
-{
-  mqttClient.setServer(MQTT_server, MQTT_port);
-  mqttClient.setCallback(mqttCallback);
+//   // Convert to int (your 1 byte)
+//   mqtt_value = atoi(value);
+//   if (currentStatus != LOADING)
+//   {
+//     Scheduler.clearSchedule();
+//     pluginManager.setActivePluginById(mqtt_value);
+//   }
+// }
+// void connectMQTT()
+// {
+//   mqttClient.setServer(MQTT_server, MQTT_port);
+//   mqttClient.setCallback(mqttCallback);
 
-  while (!mqttClient.connected())
-  {
-    if (mqttClient.connect("esp32-client", // client ID (can be anything)
-                           MQTT_username,  // MQTT username
-                           MQTT_key        // MQTT password
-                           ))
-    {
+//   while (!mqttClient.connected())
+//   {
+//     if (mqttClient.connect("esp32-client", // client ID (can be anything)
+//                            MQTT_username,  // MQTT username
+//                            MQTT_key        // MQTT password
+//                            ))
+//     {
 
-      // Subscribe once connected
-      mqttClient.subscribe(MQTT_topic);
-    }
-    else
-    {
-      Serial.println("mqttSetupFail");
-    }
-  }
-}
-void setupTLS()
-{
-  wifiClient.setInsecure(); // Skip CA validation
-  // wifiClient.setCACert(ROOT_CA);
-}
+//       // Subscribe once connected
+//       mqttClient.subscribe(MQTT_topic);
+//     }
+//     else
+//     {
+//       Serial.println("mqttSetupFail");
+//     }
+//   }
+// }
+
 void pressHandler(BfButton *btn, BfButton::press_pattern_t pattern)
 {
+  Serial.print("Button event: ");
   switch (pattern)
   {
   case BfButton::SINGLE_PRESS:
@@ -244,6 +196,7 @@ void baseSetup()
   pinMode(PIN_CLOCK, OUTPUT);
   pinMode(PIN_DATA, OUTPUT);
   pinMode(PIN_ENABLE, OUTPUT);
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
 
 #if !defined(ESP32) && !defined(ESP8266)
   Screen.setup();
@@ -257,19 +210,14 @@ void baseSetup()
   connectToWiFi();
 
   // set time server using config values
-  configTzTime(config.getTzInfo().c_str(), config.getNtpServer().c_str());
-
+  // configTzTime(config.getTzInfo().c_str(), config.getNtpServer().c_str());
+  configTzTime("CET-1CEST,M3.5.0,M10.5.0/3", "pool.ntp.org", "time.nist.gov");
   initOTA(server);
   initWebsocketServer(server);
   initWebServer();
 #endif
 
-  /*// pluginManager.addPlugin(new DrawPlugin());
-  // pluginManager.addPlugin(new BreakoutPlugin());
-  // pluginManager.addPlugin(new SnakePlugin());
-  // pluginManager.addPlugin(new BlobPlugin());
-  // pluginManager.addPlugin(new GameOfLifePlugin());
-  // Order of plugin IDs, starting from 1 (0 is reserved for no plugin):
+  /* Order of plugin IDs, starting from 1 (0 is reserved for no plugin):
   // stars 1
   // lines 2
   // circle 3
@@ -278,38 +226,30 @@ void baseSetup()
   // clock 6
   // weather 7
   // custom 8
+  // matrix rain 9
+  // blob 10
+  // wave 11
+  // bubbles 12
+  // meteor shower 13
   */
+  pluginManager.addPlugin(new DrawPlugin());
   pluginManager.addPlugin(new StarsPlugin());
   pluginManager.addPlugin(new LinesPlugin());
   pluginManager.addPlugin(new CirclePlugin());
   pluginManager.addPlugin(new RainPlugin());
-  pluginManager.addPlugin(new MatrixRainPlugin());
   pluginManager.addPlugin(new FireworkPlugin());
-  pluginManager.addPlugin(new BlobPlugin());
-  pluginManager.addPlugin(new SpiralPlugin());
-  pluginManager.addPlugin(new WavePlugin());
-  pluginManager.addPlugin(new CheckerboardPlugin());
-  pluginManager.addPlugin(new RadarPlugin());
-  pluginManager.addPlugin(new BubblesPlugin());
-  pluginManager.addPlugin(new CometPlugin());
-  pluginManager.addPlugin(new FirefliesPlugin());
-  pluginManager.addPlugin(new MeteorShowerPlugin());
-  pluginManager.addPlugin(new ScanlinesPlugin());
-  pluginManager.addPlugin(new SparkleFieldPlugin());
-  pluginManager.addPlugin(new WaveBarsPlugin());
-
 #ifdef ENABLE_SERVER
   pluginManager.addPlugin(new BigClockPlugin());
-  pluginManager.addPlugin(new WeatherPlugin());
-  pluginManager.addPlugin(new TransportPlugin());
 
-  // pluginManager.addPlugin(new ClockPlugin());
-  // pluginManager.addPlugin(new PongClockPlugin());
-  // pluginManager.addPlugin(new TickingClockPlugin());
-  // pluginManager.addPlugin(new AnimationPlugin());
-  // pluginManager.addPlugin(new DDPPlugin());
-  // pluginManager.addPlugin(new ArtNetPlugin());
+  pluginManager.addPlugin(new WeatherPlugin());
+  pluginManager.addPlugin(new WLClockPlugin());
+
 #endif
+  pluginManager.addPlugin(new MatrixRainPlugin());
+  pluginManager.addPlugin(new BlobPlugin());
+  pluginManager.addPlugin(new WavePlugin());
+  pluginManager.addPlugin(new BubblesPlugin());
+  pluginManager.addPlugin(new MeteorShowerPlugin());
 
   Screen.clear();
   pluginManager.init();
@@ -333,9 +273,10 @@ void screenDrawingTask(void *parameter)
 
 void setup()
 {
+  delay(1000); // Short delay to allow for any serial monitor connection before starting WiFi and mDNS
   baseSetup();
-  setupTLS();
-  connectMQTT();
+  // wifiClientIO.setCACert(adafruit_ca); // AdafruitIO CA setup for secure MQTT
+  // connectMQTT();
   xTaskCreatePinnedToCore(screenDrawingTask,
                           "screenDrawingTask",
                           10000,
@@ -409,12 +350,12 @@ void loop()
   }
 
   // MQTT Loop stuff
-  if (!mqttClient.connected())
-  {
-    connectMQTT();
-  }
-  mqttClient.loop();
-  //
+  // if (!mqttClient.connected())
+  // {
+  //   connectMQTT();
+  // }
+
+  // mqttClient.loop();
   taskCounter++;
   if (taskCounter > 16)
   {
@@ -430,3 +371,11 @@ void loop()
   delay(1);
 #endif
 }
+
+/*Helper functions and blocks
+//plop free space
+Serial.printf("[Memory] Total Heap: %d | Largest Block: %d\n",
+              ESP.getFreeHeap(),
+              ESP.getMaxAllocHeap());
+
+                  */

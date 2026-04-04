@@ -1,5 +1,6 @@
 #include "plugins/WeatherPlugin.h"
 #include "config.h"
+#include "vassecrets.h"
 
 // https://github.com/chubin/wttr.in/blob/master/share/translations/en.txt
 #ifdef ESP32
@@ -9,16 +10,17 @@
 #include <ESP8266WiFi.h>
 WiFiClient wiFiClient;
 #endif
-
+WiFiClientSecure secureClient_wittr;
 void WeatherPlugin::setup()
 {
   Screen.clear();
 
 #ifdef ESP32
-  if (secureClient == nullptr)
+  //.if (secureClient_wittr == nullptr)
   {
-    secureClient = new WiFiClientSecure();
-    secureClient->setInsecure();
+    secureClient_wittr = WiFiClientSecure();
+    // secureClient_wittr.setInsecure();
+    secureClient_wittr.setCACert(wttr_ca);
   }
 #endif
 
@@ -27,6 +29,7 @@ void WeatherPlugin::setup()
       millis() - lastUpdate < (1000UL * 60 * 30))
   {
     Serial.println("Using cached weather data");
+    Serial.printf("\nCached Weather Data - Temp: %d°C, Code: %d\n", cachedTemperature, cachedWeatherIcon);
     drawWeather();
   }
   else
@@ -50,9 +53,9 @@ void WeatherPlugin::loop()
 {
   if (this->lastUpdate == 0 || millis() >= this->lastUpdate + (1000 * 60 * 30))
   {
+    Serial.println("updating weather");
     this->update();
     this->lastUpdate = millis();
-    Serial.println("updating weather");
   };
 }
 
@@ -68,21 +71,21 @@ void WeatherPlugin::update()
   String weatherLocation = config.getWeatherLocation();
   Serial.print("[WeatherPlugin] Fetching weather for configured city: ");
   Serial.println(weatherLocation);
-  
+
   String weatherApiString = "https://wttr.in/" + weatherLocation + "?format=j2&lang=en";
   Serial.print("[WeatherPlugin] API request: ");
   Serial.println(weatherApiString);
 
 #ifdef ESP32
-  if (secureClient != nullptr)
+  //.if (secureClient_wittr == nullptr)
   {
-    http.begin(*secureClient, weatherApiString);
+    http.begin(secureClient_wittr, weatherApiString);
   }
-  else
-  {
-    Serial.println("Secure client not initialized!");
-    return;
-  }
+  // else
+  // {
+  //   Serial.println("Secure client not initialized!");
+  //   return;
+  // }
 #endif
 #ifdef ESP8266
   http.begin(wiFiClient, weatherApiString);
@@ -97,26 +100,92 @@ void WeatherPlugin::update()
 
   if (code == HTTP_CODE_OK)
   {
-    String payload = http.getString();
-    Serial.print("Response size: ");
-    Serial.println(payload.length());
+    String payload = "";
+    int totalLength = http.getSize();
 
+    if (totalLength > 0)
+    {
+      payload.reserve(totalLength + 1);
+    }
+
+    WiFiClient *stream = http.getStreamPtr();
+    uint8_t buffer[128]; // Smaller chunks are safer for the PICO/S3 heap
+
+    int bytesRemaining = totalLength;
+
+    Serial.println("[HTTP] Starting streamed read...");
+
+    while (http.connected() && (bytesRemaining > 0 || totalLength == -1))
+    {
+      size_t size = stream->available();
+      if (size)
+      {
+        // Read into buffer
+        int c = stream->readBytes(buffer, ((size > sizeof(buffer)) ? sizeof(buffer) : size));
+        payload.concat((char *)buffer, c);
+        if (totalLength > 0)
+          bytesRemaining -= c;
+      }
+      // This resets the Watchdog Timer and lets other tasks run
+      vTaskDelay(1);
+    }
+    // 1. Find the first '{' and cut off the hex headers
+    int firstBrace = payload.indexOf('{');
+    int lastBrace = payload.lastIndexOf('}');
+
+    if (firstBrace != -1 && lastBrace != -1)
+    {
+      payload = payload.substring(firstBrace, lastBrace + 1);
+    }
+    payload.trim();
+    // Check for "ghost" null terminators that stop the JSON parser
+    for (int i = 0; i < payload.length(); i++)
+    {
+      if (payload[i] == '\0')
+      {
+        payload[i] = ' ';
+      }
+    }
+
+    /* Deserialisation starts here */
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, payload);
 
     if (error)
     {
-      Serial.print("JSON parsing failed: ");
-      Serial.println(error.c_str());
-      http.end();
+
+      Serial.printf("Payload Length: %d\n", payload.length());
+      if (payload.length() > 0)
+      {
+        // Print the first 50 characters as a string
+        Serial.print("Start of payload: ");
+        Serial.println(payload.substring(0, min((int)payload.length(), 50)));
+
+        // Print the first 10 bytes in HEX
+        Serial.print("First 10 bytes (HEX): ");
+        for (int i = 0; i < min((int)payload.length(), 10); i++)
+        {
+          Serial.printf("%02X ", (unsigned char)payload[i]);
+        }
+        Serial.println();
+      }
+      else
+      {
+        Serial.println("WARNING: Payload is EMPTY!");
+      }
       return;
     }
 
-    int temperature = round(doc["current_condition"][0]["temp_C"].as<float>());
-    int weatherCode = doc["current_condition"][0]["weatherCode"].as<int>();
+    /* Error free at this point, hopefully. */
+    int temperature = round(doc["data"]["current_condition"][0]["temp_C"].as<float>());
+    int weatherCode = doc["data"]["current_condition"][0]["weatherCode"].as<int>();
     int weatherIcon = 0;
     int iconY = 1;
     int tempY = 10;
+    Serial.printf("\nParsed Weather Data - Temp: %d°C, Code: %d\n", temperature, weatherCode);
+    // Free up memory used by the payload string and JSON document
+    payload = String();
+    doc.clear();
 
     if (std::find(thunderCodes.begin(), thunderCodes.end(), weatherCode) != thunderCodes.end())
     {
