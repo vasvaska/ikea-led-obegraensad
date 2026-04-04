@@ -6,11 +6,11 @@
 #define ENABLE_SERVER
 
 #ifdef ESP32
-#define PIN_ENABLE 32
-#define PIN_DATA 12
-#define PIN_CLOCK 14
-#define PIN_LATCH 33
-#define PIN_BUTTON 25
+#define PIN_ENABLE 2
+#define PIN_DATA 9
+#define PIN_CLOCK 7
+#define PIN_LATCH 44
+#define PIN_BUTTON 8//TODO: change to maybe 8 for final version, 43 for testing (bottom left)
 #endif
 
 #ifdef ESP8266
@@ -30,7 +30,7 @@
 
 #ifdef ENABLE_SERVER
 // https://github.com/nayarsystems/posix_tz_db/blob/master/zones.json
-#define NTP_SERVER "bevtime1.metrologie.at"
+#define NTP_SERVER "de.pool.ntp.org"
 #define TZ_INFO "CET-1CEST,M3.5.0,M10.5.0/3"
 #endif
 
