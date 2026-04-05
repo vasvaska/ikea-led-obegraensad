@@ -32,6 +32,9 @@ const [mainStore, setStore] = createStore<Store>({
   connectionState: wsState,
   connectionStatus: connectionStatus[0],
   schedule: [],
+  audioWaveGain: 0.5,
+  audioWaveNoiseFloor: 0.4,
+  audioWaveGradient: 0.3,
 });
 
 const actions: StoreActions = {
@@ -46,6 +49,11 @@ const actions: StoreActions = {
   setLeds: (leds) => setStore("leds", leds),
   setSystemStatus: (systemStatus: SYSTEM_STATUS) => setStore("systemStatus", systemStatus),
   setSchedule: (items: ScheduleItem[]) => setStore("schedule", items),
+  setAudioWaveGain: (audioWaveGain: number) => setStore("audioWaveGain", audioWaveGain),
+  setAudioWaveNoiseFloor: (audioWaveNoiseFloor: number) =>
+    setStore("audioWaveNoiseFloor", audioWaveNoiseFloor),
+  setAudioWaveGradient: (audioWaveGradient: number) =>
+    setStore("audioWaveGradient", audioWaveGradient),
   send: ws.send,
 };
 

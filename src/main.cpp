@@ -30,6 +30,7 @@
 #include "plugins/RainPlugin.h"
 #include "plugins/SparkleFieldPlugin.h"
 
+#include "plugins/AudioWavePlugin.h"
 #include "plugins/MatrixRainPlugin.h"
 #include "plugins/MeteorShowerPlugin.h"
 #include "plugins/StarsPlugin.h"
@@ -221,35 +222,30 @@ void baseSetup()
   // stars 1
   // lines 2
   // circle 3
-  // rain 4
+  // MatrixRain 4
   // firework 5
-  // clock 6
+  // clock+transport 6
   // weather 7
-  // custom 8
-  // matrix rain 9
-  // blob 10
-  // wave 11
-  // bubbles 12
-  // meteor shower 13
+  // blob 8
+  // wave 9
+  // bubbles 10
+  // meteor shower 11
   */
-  pluginManager.addPlugin(new DrawPlugin());
+
   pluginManager.addPlugin(new StarsPlugin());
   pluginManager.addPlugin(new LinesPlugin());
   pluginManager.addPlugin(new CirclePlugin());
-  pluginManager.addPlugin(new RainPlugin());
+  pluginManager.addPlugin(new MatrixRainPlugin());
   pluginManager.addPlugin(new FireworkPlugin());
 #ifdef ENABLE_SERVER
-  pluginManager.addPlugin(new BigClockPlugin());
-
-  pluginManager.addPlugin(new WeatherPlugin());
   pluginManager.addPlugin(new WLClockPlugin());
-
+  pluginManager.addPlugin(new WeatherPlugin());
 #endif
-  pluginManager.addPlugin(new MatrixRainPlugin());
   pluginManager.addPlugin(new BlobPlugin());
   pluginManager.addPlugin(new WavePlugin());
   pluginManager.addPlugin(new BubblesPlugin());
   pluginManager.addPlugin(new MeteorShowerPlugin());
+  pluginManager.addPlugin(new AudioWavePlugin());
 
   Screen.clear();
   pluginManager.init();

@@ -25,7 +25,8 @@ export const App: Component = () => {
       | "persist-plugin"
       | "artnet"
       | "brightness"
-      | "goldelay",
+      | "goldelay"
+      | "audiowave",
     data?: Record<string, string | number> | { data: number[] },
   ) =>
     actions.send(
@@ -98,6 +99,19 @@ export const App: Component = () => {
   const handlePersistPlugin = () => {
     wsMessage("persist-plugin");
     toast(`Current mode set as default`, 1500);
+  };
+  const handleAudioWaveGainChange = (value: number, shouldSend = false) => {
+    actions?.setAudioWaveGain(value);
+    if (shouldSend) wsMessage("audiowave", { gain: value });
+  };
+  const handleAudioWaveNoiseFloorChange = (value: number, shouldSend = false) => {
+    actions?.setAudioWaveNoiseFloor(value);
+    if (shouldSend) wsMessage("audiowave", { noiseFloor: value });
+  };
+
+  const handleAudioWaveGradientChange = (value: number, shouldSend = false) => {
+    actions?.setAudioWaveGradient(value);
+    if (shouldSend) wsMessage("audiowave", { gradient: value });
   };
 
   const renderLedMatrix = () => (
@@ -190,6 +204,9 @@ export const App: Component = () => {
           onArtnetChange={handleArtnetUniverseChange}
           onGOLDelayChange={handleGOLDelayChange}
           onPersistPlugin={handlePersistPlugin}
+          onAudioWaveGainChange={handleAudioWaveGainChange}
+          onAudioWaveNoiseFloorChange={handleAudioWaveNoiseFloorChange}
+          onAudioWaveGradientChange={handleAudioWaveGradientChange}
         />
       }
     />

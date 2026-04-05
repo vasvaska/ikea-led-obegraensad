@@ -121,14 +121,6 @@ void WLClockPlugin::loop()
     fetchDepartures();
     drawCooldown();
   }
-
-  // Screen.drawLine(0, 0, 0, 15, 0); // Clear previous departure indicator1
-  // delayMicroseconds(1000);
-  // Screen.drawLine(0, 15, 0, min(15, departures[0]), 1); // Draw new departure indicator Line1
-  // delayMicroseconds(1000);
-  // Screen.drawLine(0, 15, 15, 15, 0); // clear previous departure indicator2
-  // delayMicroseconds(1000);
-  // Screen.drawLine(0, 15, min(15, departures[1]), 15, 1); // Draw new departure indicator Line2
 }
 
 const char* WLClockPlugin::getName() const
@@ -218,7 +210,8 @@ void WLClockPlugin::drawCooldown()
   Screen.drawLine(0, 15, 15, 15, 0, 0); // clear previous departure indicator2
   delay(1);
 
-  Screen.drawLine(0, 15, 0, 15 - min(15, departures[0]), 1, 100); // Draw new departure indicator Line1
+  Screen
+      .drawLine(0, 15, 0, 15 - min(15, departures[0]), 1, 100); // Draw new departure indicator Line1
   delay(1);
   Screen.drawLine(0, 15, min(15, departures[1]), 15, 1, 100); // Draw new departure indicator Line2
 }

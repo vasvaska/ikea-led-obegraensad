@@ -10,7 +10,7 @@
 #define PIN_DATA 9
 #define PIN_CLOCK 7
 #define PIN_LATCH 44
-#define PIN_BUTTON 8//TODO: change to maybe 8 for final version, 43 for testing (bottom left)
+#define PIN_BUTTON 8
 #endif
 
 #ifdef ESP8266
@@ -20,6 +20,13 @@
 #define PIN_LATCH 0
 #define PIN_BUTTON 2
 #endif
+
+// Definitions for I2S microphone (INMP441-currently | MS6420 in the future)
+#define AUDIO_WAVE_PIN_WS 4  // WordSelect
+#define AUDIO_WAVE_PIN_SCK 5 // SerialClock
+#define AUDIO_WAVE_PIN_SD 6  // SerialData
+#define I2S_PORT I2S_NUM_0   // I2S port number
+//
 
 // disable if you do not want to use the internal storage
 // https://randomnerdtutorials.com/esp32-save-data-permanently-preferences/

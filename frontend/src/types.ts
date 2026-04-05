@@ -24,6 +24,9 @@ export interface StoreActions {
   setArtnetUniverse: (artnetUniverse: number) => void;
   setGOLDelay: (GOLDelay: number) => void;
   send: (message: string | ArrayBuffer) => void;
+  setAudioWaveGain: (audioWaveGain: number) => void;
+  setAudioWaveNoiseFloor: (audioWaveNoiseFloor: number) => void;
+  setAudioWaveGradient: (audioWaveGradient: number) => void;
 }
 
 export interface Store {
@@ -40,6 +43,9 @@ export interface Store {
   connectionState: () => number;
   connectionStatus?: string;
   schedule: ScheduleItem[];
+  audioWaveGain: number;
+  audioWaveNoiseFloor: number;
+  audioWaveGradient: number;
 }
 
 export interface IToastContext {
