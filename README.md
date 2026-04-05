@@ -2,11 +2,18 @@
 
 # IKEA OBEGRÄNSAD Hack/Mod
 
-Turn your OBEGRÄNSAD LED Wall Lamp into a live drawing canvas
+Turn your OBEGRÄNSAD LED Wall Lamp into a live drawing canvas and more!
 
 > **⚠ Disclaimer**: Use this code and instructions at your own risk! Improper use may damage the device.
 > **Contribute**: Have suggestions or improvements? Feel free to submit a PR or open an issue. 😊
+> This work is based on the orginal work of [![ph1p/ikea-led-obergraensad](https://github.com/ph1p/ikea-led-obegraensad)
 
+I've undertaken some personalisation and changes to suit my taste. The main extentions are:
+1) AudioWavePlugin - > Realtime sound visualisation using an I2S microphone (INMP441) and DSP
+2) Modified Clock Plugin to pull and display public transport data
+3) Amazon Alexa integration via MQTT (not in repo)
+
+   A schematic will come shortly
 ![ezgif-3-2019fca7a4](https://user-images.githubusercontent.com/15351728/200184222-a590575d-983d-4ab8-a322-c6bcf433d364.gif)
 
 ## Table of Contents
