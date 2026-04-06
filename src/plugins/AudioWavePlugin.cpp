@@ -22,16 +22,27 @@ void AudioWavePlugin::setup()
   smoothedRMS_ = 0.0f;
   peakRMS_ = 0.01f;
   setupI2S_();
+  mutex_ = xSemaphoreCreateMutex();
 }
 
 void AudioWavePlugin::teardown()
 {
+  if (mutex_)
+    xSemaphoreTake(mutex_, portMAX_DELAY);
   teardownI2S_();
+  if (mutex_)
+  {
+    xSemaphoreGive(mutex_);
+    vSemaphoreDelete(mutex_);
+    mutex_ = nullptr;
+  }
 }
 
 void AudioWavePlugin::loop()
 {
   if (!i2sReady_ || i2sBuf_ == nullptr || fBuf_ == nullptr)
+    return;
+  if (!mutex_ || xSemaphoreTake(mutex_, pdMS_TO_TICKS(25)) != pdTRUE)
     return;
 
   size_t bytesRead = 0;
@@ -89,6 +100,7 @@ void AudioWavePlugin::loop()
     // 7. Render
     renderToScreen_();
   }
+  xSemaphoreGive(mutex_);
 }
 
 // ─── Websocket hook ────────────────────────────────────────────────────────
@@ -252,17 +264,16 @@ void AudioWavePlugin::setupI2S_()
 
 void AudioWavePlugin::teardownI2S_()
 {
-  if (i2sReady_)
+  if (i2sReady_ && rxChan_ != nullptr)
   {
-    i2s_channel_disable(rxChan_); // stop DMA, back to READY state
+    i2s_channel_disable(rxChan_);
     i2sReady_ = false;
   }
   if (rxChan_ != nullptr)
   {
-    i2s_del_channel(rxChan_); // release driver resources
+    i2s_del_channel(rxChan_);
     rxChan_ = nullptr;
   }
-  // heap_caps_free() is safe on both PSRAM and internal heap pointers
   if (i2sBuf_ != nullptr)
   {
     heap_caps_free(i2sBuf_);

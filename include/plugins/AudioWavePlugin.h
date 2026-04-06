@@ -5,6 +5,7 @@
 #include "driver/i2s_std.h" // new ESP-IDF I2S API (IDF >= 5.0 / Arduino core >= 3.x)
 #include "dsps_dotprod.h"   // esp-dsp: vectorised dot product
 #include "esp_heap_caps.h"
+#include "freertos/semphr.h"
 #include <math.h>
 
 // ─── INMP441 I2S pin config ────────────────────────────────────────────────
@@ -79,4 +80,6 @@ private:
 
   uint8_t frameSkip_ = 4; // ~30fps@4
   uint8_t frameCounter_ = 0;
+  // ── Concurrency control ───────────────────────────────────────────────
+  SemaphoreHandle_t mutex_ = nullptr;
 };
