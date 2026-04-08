@@ -6,15 +6,33 @@ Turn your OBEGRÄNSAD LED Wall Lamp into a live drawing canvas and more!
 
 > **⚠ Disclaimer**: Use this code and instructions at your own risk! Improper use may damage the device.
 > **Contribute**: Have suggestions or improvements? Feel free to submit a PR or open an issue. 😊
-> This work is based on the orginal work of [![ph1p/ikea-led-obergraensad](https://github.com/ph1p/ikea-led-obegraensad)
 
-I've undertaken some personalisation and changes to suit my taste. The main extentions are:
-1) AudioWavePlugin - > Realtime sound visualisation using an I2S microphone (INMP441) and DSP
-2) Modified Clock Plugin to pull and display public transport data
-3) Amazon Alexa integration via MQTT (not in repo)
+This work is a fork of ![ph1p/ikea-led-obergraensad](https://github.com/ph1p/ikea-led-obegraensad).
 
-   A schematic will come shortly
+Changes implemented: 
+1) Addition of mDNS. -> no more IP-address guessing, remembering, router-level parking, etc.. The device is now
+   accessable @ "\<mylamp\>.local" within the local network.
+2) AudioWavePlugin - > Realtime sound visualisation using an I2S microphone (INMP441) and some light DSP. Demo below, sound on.
+
+https://github.com/user-attachments/assets/46222c16-51b4-4458-968d-b1127fec356d
+
+3) Modified BigClockPlugin to pull and display public transport data. 
+4) Amazon Alexa integration via Adafruit.IO MQTT-broker and an Amazon development python lambda-function (not in repo & currently disabled for testing)
+5) TSL Certificate check (not thouroughly tested.)
+
+My setup uses an XIAO ESP32-S3 in combination with an INMP441 microphone. Both of which are in the box, and the back panel is 
+mounted via double-sided tape. 
+If you do want to implement the AudioWavePlugin unctionality, you will have to adapt the noise floor and amplification to your 
+circumstances. These values are also adjustable via the WebGUI.
+
+### Schematic/Wiring Diagram: 
+<img width="500" alt="AudioWavePlugin_Schematic" src="https://github.com/user-attachments/assets/01426889-4912-4d27-8101-cacff999456c" />
+
+
+## Original ReadMe onwards
+
 ![ezgif-3-2019fca7a4](https://user-images.githubusercontent.com/15351728/200184222-a590575d-983d-4ab8-a322-c6bcf433d364.gif)
+
 
 ## Table of Contents
 
